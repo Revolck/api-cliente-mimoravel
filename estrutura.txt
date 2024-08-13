@@ -1,0 +1,28 @@
+src/
+│
+├── config/
+│   ├── db.js
+│   ├── logger.js
+│   └── auth.js
+│
+├── controllers/
+│   ├── userController.js
+│   ├── giftMapController.js
+│   └── tagController.js
+│
+├── middlewares/
+│   ├── errorHandler.js
+│   └── authMiddleware.js
+│
+├── services/
+│   ├── userService.js
+│   ├── giftMapService.js
+│   └── tagService.js
+│
+├── routes/
+│   ├── userRoutes.js
+│   ├── giftMapRoutes.js
+│   └── tagRoutes.js
+│
+├── app.js
+└── server.js
