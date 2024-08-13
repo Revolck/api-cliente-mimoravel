@@ -2,7 +2,7 @@ const express = require('express');
 const cors = require('cors');
 const helmet = require('helmet');
 const morgan = require('morgan');
-const errorHandler = require('./middlewares/errorHandler');
+const errorHandler = require('./src/middlewares/errorHandler');
 
 const app = express();
 
@@ -21,7 +21,7 @@ app.use(helmet());
 app.use(morgan('combined'));
 
 // Rotas
-app.use('/api', require('./routes/userRoutes'));
+app.use('/api', require('./src/routes/userRoutes'));
 
 // Middleware de tratamento de erros
 app.use(errorHandler);
