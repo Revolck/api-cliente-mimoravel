@@ -1,8 +1,9 @@
+const bcrypt = require('bcrypt'); // Adicione esta linha
 const pool = require('../config/db');
 
-// Função para verificar se um CPF já existe
-const getUserByCPF = async (cpf) => {
-    const [rows] = await pool.query('SELECT * FROM users WHERE cpf = ?', [cpf]);
+// Função para verificar se um CPF ou e-mail já está cadastrado
+const checkDuplicate = async (cpf, email) => {
+    const [rows] = await pool.query('SELECT * FROM users WHERE cpf = ? OR email = ?', [cpf, email]);
     return rows.length > 0;
 };
 
@@ -12,7 +13,7 @@ const addUser = async (userData) => {
     const hashedPassword = await bcrypt.hash(senha, 10);
 
     // Verifica duplicidade antes de inserir o usuário
-    if (await getUserByCPF(cpf) || await getUserByEmail(email)) {
+    if (await checkDuplicate(cpf, email)) {
         throw new Error('CPF ou Email já cadastrado.');
     }
 
@@ -26,5 +27,4 @@ const addUser = async (userData) => {
 
 module.exports = {
     addUser,
-    getUserByCPF
 };
