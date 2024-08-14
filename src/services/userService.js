@@ -1,5 +1,6 @@
-const bcrypt = require('bcrypt'); // Adicione esta linha
+const bcrypt = require('bcrypt');
 const pool = require('../config/db');
+const auth = require('../config/auth');
 
 // Função para verificar se um CPF ou e-mail já está cadastrado
 const checkDuplicate = async (cpf, email) => {
@@ -25,6 +26,30 @@ const addUser = async (userData) => {
     return { id: result.insertId };
 };
 
+// Função para realizar o login do usuário
+const loginUser = async (email, senha) => {
+    try {
+        const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
+
+        if (rows.length === 0) {
+            throw new Error('E-mail não encontrado.');
+        }
+
+        const user = rows[0];
+        const isMatch = await bcrypt.compare(senha, user.senha);
+
+        if (!isMatch) {
+            throw new Error('Senha incorreta.');
+        }
+
+        const token = auth.generateToken({ id: user.id, email: user.email });
+        return { token, user: { id: user.id, email: user.email } };
+    } catch (error) {
+        throw error;
+    }
+};
+
 module.exports = {
     addUser,
+    loginUser,
 };

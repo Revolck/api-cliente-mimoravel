@@ -6,10 +6,13 @@ const errorHandler = require('./src/middlewares/errorHandler');
 
 const app = express();
 
+// Middleware de parsing JSON
 app.use(express.json());
+
+// Configuração de CORS
 app.use(cors({
     origin: (origin, callback) => {
-        // Permitir todas as origens, incluindo localhost e domínio específico
+        // Permitir localhost e domínio específico
         if (!origin || origin === 'http://localhost:3000' || origin === 'https://mapa.mimoravel.com.br') {
             callback(null, true);
         } else {
@@ -17,11 +20,18 @@ app.use(cors({
         }
     }
 }));
+
+// Segurança com Helmet
 app.use(helmet());
+
+// Logging com Morgan
 app.use(morgan('combined'));
 
-// Rotas
-app.use('/api', require('./src/routes/userRoutes'));
+// Rotas da API
+app.use('/api/users', require('./src/routes/userRoutes'));
+// Futuras rotas podem ser adicionadas aqui, como por exemplo:
+// app.use('/api/giftmaps', require('./src/routes/giftMapRoutes'));
+// app.use('/api/tags', require('./src/routes/tagRoutes'));
 
 // Middleware de tratamento de erros
 app.use(errorHandler);

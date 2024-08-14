@@ -16,3 +16,13 @@ exports.addUser = async (req, res, next) => {
         return res.status(500).json({ error: 'Erro no servidor.' });
     }
 };
+
+exports.loginUser = async (req, res, next) => {
+    try {
+        const { email, senha } = req.body;
+        const result = await userService.loginUser(email, senha);
+        res.status(200).json(result);
+    } catch (error) {
+        next(error);
+    }
+};
