@@ -36,6 +36,10 @@ const loginUser = async (email, senha) => {
         }
 
         const user = rows[0];
+        if (!user.senha) {
+            throw new Error('Senha não encontrada para o usuário.');
+        }
+
         const isMatch = await bcrypt.compare(senha, user.senha);
 
         if (!isMatch) {

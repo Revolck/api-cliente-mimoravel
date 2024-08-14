@@ -23,6 +23,11 @@ exports.loginUser = async (req, res, next) => {
         const result = await userService.loginUser(email, senha);
         res.status(200).json(result);
     } catch (error) {
-        next(error);
+        // Verifica o tipo do erro
+        if (error.message === 'E-mail não encontrado.' || error.message === 'Senha incorreta.') {
+            return res.status(401).json({ error: error.message });
+        }
+        console.error(error);
+        return res.status(500).json({ error: 'Erro no servidor.' });
     }
 };
