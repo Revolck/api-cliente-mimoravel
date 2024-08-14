@@ -40,10 +40,6 @@ const loginUser = async (email, senha) => {
             throw new Error('Senha não encontrada para o usuário.');
         }
 
-        // Log para verificar os valores
-        console.log('Senha fornecida:', senha);
-        console.log('Hash armazenado:', user.senha);
-
         const isMatch = await bcrypt.compare(senha, user.senha);
 
         if (!isMatch) {
@@ -53,7 +49,6 @@ const loginUser = async (email, senha) => {
         const token = auth.generateToken({ id: user.id, email: user.email });
         return { token, user: { id: user.id, email: user.email } };
     } catch (error) {
-        console.error(error); // Log do erro para depuração
         throw error;
     }
 };
