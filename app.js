@@ -29,6 +29,7 @@ app.use(morgan('combined'));
 
 // Rotas da API
 app.use('/api/users', require('./src/routes/userRoutes'));
+app.use('/api/giftmaps', require('./src/routes/giftMapRoutes'));
 // Futuras rotas podem ser adicionadas aqui, como por exemplo:
 // app.use('/api/giftmaps', require('./src/routes/giftMapRoutes'));
 // app.use('/api/tags', require('./src/routes/tagRoutes'));
