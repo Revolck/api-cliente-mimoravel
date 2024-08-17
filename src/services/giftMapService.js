@@ -47,16 +47,35 @@ const addGiftMap = async (giftMapData) => {
     }
 };
 
-const deleteGiftMapById = async (id) => {
-    const query = 'DELETE FROM gift_map WHERE id = ?';
+const deleteGiftMapByRespondentId = async (respondentId) => {
     try {
-        const [result] = await connection.query(query, [id]);
-        if (result.affectedRows === 0) {
-            throw new Error('Nenhum item encontrado com o ID fornecido.');
+        // Inicia a transação
+        const conn = await connection.getConnection();
+        await conn.beginTransaction();
+
+        // Deleta os dados da tabela gift_map
+        const [giftMapResult] = await conn.query('DELETE FROM gift_map WHERE respondent_id = ?', [respondentId]);
+
+        if (giftMapResult.affectedRows === 0) {
+            throw new Error('Nenhum dado encontrado para o respondente fornecido.');
         }
-        return result;
+
+        // Deleta os dados da tabela respondents
+        const [respondentResult] = await conn.query('DELETE FROM respondents WHERE id = ?', [respondentId]);
+
+        if (respondentResult.affectedRows === 0) {
+            throw new Error('Nenhum respondente encontrado com o ID fornecido.');
+        }
+
+        // Confirma a transação
+        await conn.commit();
+        conn.release(); // Libera a conexão
     } catch (err) {
-        throw new Error('Erro ao deletar o item: ' + err.message);
+        if (conn) {
+            await conn.rollback(); // Desfaz a transação em caso de erro
+            conn.release();
+        }
+        throw new Error('Erro ao deletar os dados: ' + err.message);
     }
 };
 
@@ -65,5 +84,5 @@ module.exports = {
     getGiftMap,
     addGiftMap,
     getAllGiftMaps,
-    deleteGiftMapById,
+    deleteGiftMapByRespondentId,
 };

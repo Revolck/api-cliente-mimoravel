@@ -1,4 +1,3 @@
-const connection = require('../config/db');
 const giftMapService = require('../services/giftMapService');
 
 exports.getGiftMap = async (req, res, next) => {
@@ -30,50 +29,13 @@ exports.getAllGiftMaps = async (req, res) => {
     }
 };
 
-exports.deleteGiftMap = (req, res, next) => {
+exports.deleteGiftMap = async (req, res, next) => {
     const respondentId = req.params.id;
 
-    connection.getConnection((err, conn) => {
-        if (err) return next(err);
-
-        conn.beginTransaction((err) => {
-            if (err) return next(err);
-
-            // Deleta primeiro os dados da tabela gift_map
-            conn.query(
-                'DELETE FROM gift_map WHERE respondent_id = ?',
-                [respondentId],
-                (error, results) => {
-                    if (error) {
-                        return conn.rollback(() => {
-                            next(error);
-                        });
-                    }
-
-                    // Agora deleta o respondent
-                    conn.query(
-                        'DELETE FROM respondents WHERE id = ?',
-                        [respondentId],
-                        (error, results) => {
-                            if (error) {
-                                return conn.rollback(() => {
-                                    next(error);
-                                });
-                            }
-
-                            conn.commit((err) => {
-                                if (err) {
-                                    return conn.rollback(() => {
-                                        next(err);
-                                    });
-                                }
-
-                                res.status(200).json({ message: 'Respondente e dados do gift_map deletados com sucesso.' });
-                            });
-                        }
-                    );
-                }
-            );
-        });
-    });
+    try {
+        await giftMapService.deleteGiftMapByRespondentId(respondentId);
+        res.status(200).json({ message: 'Respondente e dados do gift_map deletados com sucesso.' });
+    } catch (error) {
+        next(error);
+    }
 };
