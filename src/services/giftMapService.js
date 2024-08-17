@@ -26,7 +26,7 @@ const getGiftMap = async (search) => {
 };
 
 const getAllGiftMaps = async () => {
-    const [rows] = await db.query(`
+    const [rows] = await connection.query(`
       SELECT gm.id, r.nome AS name, r.email, r.telefone AS phone, r.cidade AS city, gm.data_criacao AS sendDate, gm.status_contato AS status
       FROM gift_map gm
       JOIN respondents r ON gm.respondent_id = r.id
@@ -35,11 +35,11 @@ const getAllGiftMaps = async () => {
 };
 
 const addGiftMap = async (giftMapData) => {
-    const { respondent_id, ocasiao, relacionamento, paixoes_hobbies, estilo, melhores_momentos, valores, desejos, avesso_a, status_contato } = giftMapData;
+    const { respondent_id, special_occasion_id, relationship_with_gifted_id, interests_and_passions_id, style_and_personality_id, shared_memories_id, values_and_beliefs_id, unmet_wishes_id, dislikes_id, status_contato } = giftMapData;
     try {
         const [result] = await connection.query(
-            'INSERT INTO gift_map (respondent_id, ocasiao, relacionamento, paixoes_hobbies, estilo, melhores_momentos, valores, desejos, avesso_a, status_contato) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
-            [respondent_id, ocasiao, relacionamento, paixoes_hobbies, estilo, melhores_momentos, valores, desejos, avesso_a, status_contato]
+            'INSERT INTO gift_map (respondent_id, special_occasion_id, relationship_with_gifted_id, interests_and_passions_id, style_and_personality_id, shared_memories_id, values_and_beliefs_id, unmet_wishes_id, dislikes_id, status_contato) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+            [respondent_id, special_occasion_id, relationship_with_gifted_id, interests_and_passions_id, style_and_personality_id, shared_memories_id, values_and_beliefs_id, unmet_wishes_id, dislikes_id, status_contato]
         );
         return { id: result.insertId };
     } catch (err) {
@@ -60,7 +60,17 @@ const deleteGiftMapById = async (giftMapId) => {
         }
         const respondentId = result[0].respondent_id;
 
-        // Exclui os registros da tabela gift_map associados ao gift_map_id
+        // Exclui os registros das tabelas associadas ao gift_map_id
+        await conn.query('DELETE FROM special_occasion WHERE id = (SELECT special_occasion_id FROM gift_map WHERE id = ?)', [giftMapId]);
+        await conn.query('DELETE FROM relationship_with_gifted WHERE id = (SELECT relationship_with_gifted_id FROM gift_map WHERE id = ?)', [giftMapId]);
+        await conn.query('DELETE FROM interests_and_passions WHERE id = (SELECT interests_and_passions_id FROM gift_map WHERE id = ?)', [giftMapId]);
+        await conn.query('DELETE FROM style_and_personality WHERE id = (SELECT style_and_personality_id FROM gift_map WHERE id = ?)', [giftMapId]);
+        await conn.query('DELETE FROM shared_memories WHERE id = (SELECT shared_memories_id FROM gift_map WHERE id = ?)', [giftMapId]);
+        await conn.query('DELETE FROM values_and_beliefs WHERE id = (SELECT values_and_beliefs_id FROM gift_map WHERE id = ?)', [giftMapId]);
+        await conn.query('DELETE FROM unmet_wishes WHERE id = (SELECT unmet_wishes_id FROM gift_map WHERE id = ?)', [giftMapId]);
+        await conn.query('DELETE FROM dislikes WHERE id = (SELECT dislikes_id FROM gift_map WHERE id = ?)', [giftMapId]);
+
+        // Exclui o gift_map
         await conn.query('DELETE FROM gift_map WHERE id = ?', [giftMapId]);
 
         // Se o respondente não estiver associado a nenhum outro gift_map, exclua o respondente
@@ -90,13 +100,28 @@ const getGiftMapById = async (giftMapId) => {
     try {
         const [giftMapData] = await connection.query(
             `SELECT gm.*, r.nome AS respondent_nome, r.email AS respondent_email, r.telefone AS respondent_telefone, 
-                    r.cidade AS respondent_cidade, GROUP_CONCAT(t.nome) AS tags 
+                    r.cidade AS respondent_cidade, 
+                    (SELECT occasion FROM special_occasion WHERE id = gm.special_occasion_id) AS special_occasion,
+                    (SELECT question_1 FROM relationship_with_gifted WHERE id = gm.relationship_with_gifted_id) AS relationship_question_1,
+                    (SELECT question_2 FROM relationship_with_gifted WHERE id = gm.relationship_with_gifted_id) AS relationship_question_2,
+                    (SELECT question_1 FROM interests_and_passions WHERE id = gm.interests_and_passions_id) AS interests_question_1,
+                    (SELECT question_2 FROM interests_and_passions WHERE id = gm.interests_and_passions_id) AS interests_question_2,
+                    (SELECT question_1 FROM style_and_personality WHERE id = gm.style_and_personality_id) AS style_question_1,
+                    (SELECT question_2 FROM style_and_personality WHERE id = gm.style_and_personality_id) AS style_question_2,
+                    (SELECT question_3 FROM style_and_personality WHERE id = gm.style_and_personality_id) AS style_question_3,
+                    (SELECT question_4 FROM style_and_personality WHERE id = gm.style_and_personality_id) AS style_question_4,
+                    (SELECT question_1 FROM shared_memories WHERE id = gm.shared_memories_id) AS shared_memories_question_1,
+                    (SELECT question_2 FROM shared_memories WHERE id = gm.shared_memories_id) AS shared_memories_question_2,
+                    (SELECT question_1 FROM values_and_beliefs WHERE id = gm.values_and_beliefs_id) AS values_question_1,
+                    (SELECT question_2 FROM values_and_beliefs WHERE id = gm.values_and_beliefs_id) AS values_question_2,
+                    (SELECT question_3 FROM values_and_beliefs WHERE id = gm.values_and_beliefs_id) AS values_question_3,
+                    (SELECT question_4 FROM values_and_beliefs WHERE id = gm.values_and_beliefs_id) AS values_question_4,
+                    (SELECT question_1 FROM unmet_wishes WHERE id = gm.unmet_wishes_id) AS unmet_wishes_question_1,
+                    (SELECT question_2 FROM unmet_wishes WHERE id = gm.unmet_wishes_id) AS unmet_wishes_question_2,
+                    (SELECT question_1 FROM dislikes WHERE id = gm.dislikes_id) AS dislikes_question_1
              FROM gift_map gm
              LEFT JOIN respondents r ON gm.respondent_id = r.id
-             LEFT JOIN gift_map_tags gmt ON gm.id = gmt.gift_map_id
-             LEFT JOIN tags t ON gmt.tag_id = t.id
-             WHERE gm.id = ?
-             GROUP BY gm.id, r.nome, r.email, r.telefone, r.cidade`,
+             WHERE gm.id = ?`,
             [giftMapId]
         );
 
