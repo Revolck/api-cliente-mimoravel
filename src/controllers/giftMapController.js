@@ -30,11 +30,11 @@ exports.getAllGiftMaps = async (req, res) => {
 };
 
 exports.deleteGiftMap = async (req, res, next) => {
-    const respondentId = req.params.id;
+    const giftMapId = req.params.id;
 
     try {
-        await giftMapService.deleteGiftMapByRespondentId(respondentId);
-        res.status(200).json({ message: 'Respondente e dados do gift_map deletados com sucesso.' });
+        await giftMapService.deleteGiftMapById(giftMapId);
+        res.status(200).json({ message: 'Gift Map e respondente associados deletados com sucesso.' });
     } catch (error) {
         next(error);
     }

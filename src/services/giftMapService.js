@@ -47,20 +47,29 @@ const addGiftMap = async (giftMapData) => {
     }
 };
 
-const deleteGiftMapByRespondentId = async (respondentId) => {
+const deleteGiftMapById = async (giftMapId) => {
     let conn;
     try {
         conn = await connection.getConnection();
         await conn.beginTransaction();
 
-        // Primeiro, exclui os registros da tabela gift_map que referenciam o respondentId
-        await conn.query('DELETE FROM gift_map WHERE respondent_id = ?', [respondentId]);
+        // Obtém o respondent_id a partir do gift_map_id
+        const [result] = await conn.query('SELECT respondent_id FROM gift_map WHERE id = ?', [giftMapId]);
+        if (result.length === 0) {
+            throw new Error('Nenhum gift_map encontrado com o ID fornecido.');
+        }
+        const respondentId = result[0].respondent_id;
 
-        // Depois, exclui o respondente da tabela respondents
-        const [respondentResult] = await conn.query('DELETE FROM respondents WHERE id = ?', [respondentId]);
+        // Exclui os registros da tabela gift_map associados ao gift_map_id
+        await conn.query('DELETE FROM gift_map WHERE id = ?', [giftMapId]);
 
-        if (respondentResult.affectedRows === 0) {
-            throw new Error('Nenhum respondente encontrado com o ID fornecido.');
+        // Se o respondente não estiver associado a nenhum outro gift_map, exclua o respondente
+        const [respondentCheck] = await conn.query('SELECT COUNT(*) AS count FROM gift_map WHERE respondent_id = ?', [respondentId]);
+        if (respondentCheck[0].count === 0) {
+            const [respondentResult] = await conn.query('DELETE FROM respondents WHERE id = ?', [respondentId]);
+            if (respondentResult.affectedRows === 0) {
+                throw new Error('Nenhum respondente encontrado com o ID fornecido.');
+            }
         }
 
         await conn.commit();
@@ -76,7 +85,6 @@ const deleteGiftMapByRespondentId = async (respondentId) => {
         }
     }
 };
-
 
 const getGiftMapById = async (giftMapId) => {
     try {
@@ -102,6 +110,6 @@ module.exports = {
     getGiftMap,
     addGiftMap,
     getAllGiftMaps,
-    deleteGiftMapByRespondentId,
+    deleteGiftMapById,
     getGiftMapById,
 };
