@@ -49,8 +49,17 @@ const addGiftMap = async (giftMapData) => {
 
 const deleteGiftMapById = async (id) => {
     const query = 'DELETE FROM gift_map WHERE id = ?';
-    return db.query(query, [id]);
+    try {
+        const [result] = await connection.query(query, [id]);
+        if (result.affectedRows === 0) {
+            throw new Error('Nenhum item encontrado com o ID fornecido.');
+        }
+        return result;
+    } catch (err) {
+        throw new Error('Erro ao deletar o item: ' + err.message);
+    }
 };
+
 
 module.exports = {
     getGiftMap,
