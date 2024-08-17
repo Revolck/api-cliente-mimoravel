@@ -47,26 +47,25 @@ const addGiftMap = async (giftMapData) => {
     }
 };
 
-const deleteGiftMapByRespondentId = async (respondentId) => {
+const deleteRespondentAndRelatedData = async (respondentId) => {
     let conn;
     try {
         // Obtém uma conexão do pool
         conn = await connection.getConnection();
         await conn.beginTransaction();
 
-        // Verifica se existem dados na tabela gift_map para o respondentId
-        const [giftMapRows] = await conn.query('SELECT * FROM gift_map WHERE respondent_id = ?', [respondentId]);
+        // Deleta os dados da tabela gift_map relacionados ao respondentId
+        const [giftMapResult] = await conn.query('DELETE FROM gift_map WHERE respondent_id = ?', [respondentId]);
 
-        if (giftMapRows.length === 0) {
-            throw new Error('Nenhum dado encontrado para o respondente fornecido.');
+        // Verifica se algum registro foi deletado da tabela gift_map
+        if (giftMapResult.affectedRows === 0) {
+            console.log('Nenhum dado encontrado na tabela gift_map para o respondente fornecido.');
         }
 
-        // Deleta os dados da tabela gift_map
-        await conn.query('DELETE FROM gift_map WHERE respondent_id = ?', [respondentId]);
-
-        // Deleta os dados da tabela respondents
+        // Deleta o respondente da tabela respondents
         const [respondentResult] = await conn.query('DELETE FROM respondents WHERE id = ?', [respondentId]);
 
+        // Verifica se o respondente foi deletado
         if (respondentResult.affectedRows === 0) {
             throw new Error('Nenhum respondente encontrado com o ID fornecido.');
         }
@@ -77,6 +76,7 @@ const deleteGiftMapByRespondentId = async (respondentId) => {
         if (conn) {
             await conn.rollback(); // Desfaz a transação em caso de erro
         }
+        console.error('Erro ao deletar os dados:', err.message);
         throw new Error('Erro ao deletar os dados: ' + err.message);
     } finally {
         if (conn) {
@@ -84,6 +84,7 @@ const deleteGiftMapByRespondentId = async (respondentId) => {
         }
     }
 };
+
 
 const getGiftMapById = async (giftMapId) => {
     try {
@@ -109,6 +110,6 @@ module.exports = {
     getGiftMap,
     addGiftMap,
     getAllGiftMaps,
-    deleteGiftMapByRespondentId,
+    deleteRespondentAndRelatedData,
     getGiftMapById,
 };
