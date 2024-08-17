@@ -50,29 +50,29 @@ const addGiftMap = async (giftMapData) => {
 const deleteGiftMapByRespondentId = async (respondentId) => {
     let conn;
     try {
-        // Obtém uma conexão do pool
         conn = await connection.getConnection();
         await conn.beginTransaction();
 
-        // Deleta o respondente da tabela respondents
+        // Primeiro, exclui os registros da tabela gift_map que referenciam o respondentId
+        await conn.query('DELETE FROM gift_map WHERE respondent_id = ?', [respondentId]);
+
+        // Depois, exclui o respondente da tabela respondents
         const [respondentResult] = await conn.query('DELETE FROM respondents WHERE id = ?', [respondentId]);
 
-        // Verifica se o respondente foi deletado
         if (respondentResult.affectedRows === 0) {
             throw new Error('Nenhum respondente encontrado com o ID fornecido.');
         }
 
-        // Confirma a transação
         await conn.commit();
     } catch (err) {
         if (conn) {
-            await conn.rollback(); // Desfaz a transação em caso de erro
+            await conn.rollback();
         }
         console.error('Erro ao deletar os dados:', err.message);
         throw new Error('Erro ao deletar os dados: ' + err.message);
     } finally {
         if (conn) {
-            conn.release(); // Libera a conexão
+            conn.release();
         }
     }
 };
