@@ -29,12 +29,46 @@ exports.getAllGiftMaps = async (req, res) => {
     }
 };
 
-exports.deleteGiftMap = async (req, res) => {
-    const { id } = req.params;
-    try {
-        await giftMapService.deleteGiftMapById(id);
-        res.status(200).json({ message: 'Item deletado com sucesso.' });
-    } catch (error) {
-        res.status(500).json({ error: 'Erro ao deletar o item.' });
-    }
+exports.deleteGiftMap = (req, res, next) => {
+    const respondentId = req.params.id;
+
+    connection.beginTransaction((err) => {
+        if (err) return next(err);
+
+        // Deleta primeiro os dados da tabela gift_map
+        connection.query(
+            'DELETE FROM gift_map WHERE respondent_id = ?',
+            [respondentId],
+            (error, results) => {
+                if (error) {
+                    return connection.rollback(() => {
+                        next(error);
+                    });
+                }
+
+                // Agora deleta o respondent
+                connection.query(
+                    'DELETE FROM respondents WHERE id = ?',
+                    [respondentId],
+                    (error, results) => {
+                        if (error) {
+                            return connection.rollback(() => {
+                                next(error);
+                            });
+                        }
+
+                        connection.commit((err) => {
+                            if (err) {
+                                return connection.rollback(() => {
+                                    next(err);
+                                });
+                            }
+
+                            res.status(200).json({ message: 'Respondente e dados do gift_map deletados com sucesso.' });
+                        });
+                    }
+                );
+            }
+        );
+    });
 };
