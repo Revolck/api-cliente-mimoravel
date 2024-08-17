@@ -32,7 +32,7 @@ const getAllGiftMaps = async () => {
       JOIN respondents r ON gm.respondent_id = r.id
     `);
     return rows;
-  };
+};
 
 const addGiftMap = async (giftMapData) => {
     const { respondent_id, ocasiao, relacionamento, paixoes_hobbies, estilo, melhores_momentos, valores, desejos, avesso_a, status_contato } = giftMapData;
@@ -47,8 +47,14 @@ const addGiftMap = async (giftMapData) => {
     }
 };
 
+const deleteGiftMapById = async (id) => {
+    const query = 'DELETE FROM gift_map WHERE id = ?';
+    return db.query(query, [id]);
+};
+
 module.exports = {
     getGiftMap,
     addGiftMap,
     getAllGiftMaps,
+    deleteGiftMapById,
 };

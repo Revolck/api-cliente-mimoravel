@@ -22,9 +22,19 @@ exports.addGiftMap = async (req, res, next) => {
 
 exports.getAllGiftMaps = async (req, res) => {
     try {
-      const giftMaps = await giftMapService.getAllGiftMaps();
-      res.status(200).json(giftMaps);
+        const giftMaps = await giftMapService.getAllGiftMaps();
+        res.status(200).json(giftMaps);
     } catch (error) {
-      res.status(500).json({ message: 'Erro ao buscar os dados do gift_map' });
+        res.status(500).json({ message: 'Erro ao buscar os dados do gift_map' });
     }
-  };
+};
+
+exports.deleteGiftMap = async (req, res) => {
+    const { id } = req.params;
+    try {
+        await giftMapService.deleteGiftMapById(id);
+        res.status(200).json({ message: 'Item deletado com sucesso.' });
+    } catch (error) {
+        res.status(500).json({ error: 'Erro ao deletar o item.' });
+    }
+};
