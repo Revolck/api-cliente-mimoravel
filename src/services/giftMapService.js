@@ -47,7 +47,7 @@ const addGiftMap = async (giftMapData) => {
     }
 };
 
-const deleteRespondentAndRelatedData = async (respondentId) => {
+const deleteGiftMapByRespondentId = async (respondentId) => {
     let conn;
     try {
         // Obtém uma conexão do pool
@@ -110,6 +110,6 @@ module.exports = {
     getGiftMap,
     addGiftMap,
     getAllGiftMaps,
-    deleteRespondentAndRelatedData,
+    deleteGiftMapByRespondentId,
     getGiftMapById,
 };
