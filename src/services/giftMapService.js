@@ -48,9 +48,10 @@ const addGiftMap = async (giftMapData) => {
 };
 
 const deleteGiftMapByRespondentId = async (respondentId) => {
+    let conn;
     try {
-        // Inicia a transação
-        const conn = await connection.getConnection();
+        // Obtém uma conexão do pool
+        conn = await connection.getConnection();
         await conn.beginTransaction();
 
         // Deleta os dados da tabela gift_map
@@ -69,13 +70,15 @@ const deleteGiftMapByRespondentId = async (respondentId) => {
 
         // Confirma a transação
         await conn.commit();
-        conn.release(); // Libera a conexão
     } catch (err) {
         if (conn) {
             await conn.rollback(); // Desfaz a transação em caso de erro
-            conn.release();
         }
         throw new Error('Erro ao deletar os dados: ' + err.message);
+    } finally {
+        if (conn) {
+            conn.release(); // Libera a conexão
+        }
     }
 };
 
