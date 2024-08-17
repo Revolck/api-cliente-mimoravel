@@ -39,3 +39,16 @@ exports.deleteGiftMap = async (req, res, next) => {
         next(error);
     }
 };
+
+exports.getGiftMapById = async (req, res, next) => {
+    try {
+        const giftMapId = req.params.id;
+        const giftMapData = await giftMapService.getGiftMapById(giftMapId);
+        if (!giftMapData) {
+            return res.status(404).json({ message: 'Gift Map not found' });
+        }
+        res.status(200).json(giftMapData);
+    } catch (error) {
+        next(error);
+    }
+};

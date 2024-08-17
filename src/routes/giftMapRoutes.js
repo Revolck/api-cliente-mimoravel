@@ -5,5 +5,6 @@ const giftMapController = require('../controllers/giftMapController');
 router.get('/search', giftMapController.getGiftMap);
 router.post('/register', giftMapController.addGiftMap);
 router.delete('/:id', giftMapController.deleteGiftMap);
+router.get('/:id', giftMapController.getGiftMapById);
 
 module.exports = router;

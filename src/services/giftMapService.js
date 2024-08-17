@@ -79,10 +79,27 @@ const deleteGiftMapByRespondentId = async (respondentId) => {
     }
 };
 
+const getGiftMapById = async (giftMapId) => {
+    const [giftMapData] = await db.query(
+        `SELECT gm.*, r.nome AS respondent_nome, r.email AS respondent_email, r.telefone AS respondent_telefone, 
+              r.cidade AS respondent_cidade, GROUP_CONCAT(t.nome) AS tags 
+       FROM gift_map gm
+       LEFT JOIN respondents r ON gm.respondent_id = r.id
+       LEFT JOIN gift_map_tags gmt ON gm.id = gmt.gift_map_id
+       LEFT JOIN tags t ON gmt.tag_id = t.id
+       WHERE gm.id = ?
+       GROUP BY gm.id, r.nome, r.email, r.telefone, r.cidade`,
+        [giftMapId]
+    );
+
+    return giftMapData;
+};
+
 
 module.exports = {
     getGiftMap,
     addGiftMap,
     getAllGiftMaps,
     deleteGiftMapByRespondentId,
+    getGiftMapById,
 };
