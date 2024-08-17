@@ -1,3 +1,4 @@
+const connection = require('../config/db');
 const giftMapService = require('../services/giftMapService');
 
 exports.getGiftMap = async (req, res, next) => {
@@ -32,43 +33,47 @@ exports.getAllGiftMaps = async (req, res) => {
 exports.deleteGiftMap = (req, res, next) => {
     const respondentId = req.params.id;
 
-    connection.beginTransaction((err) => {
+    connection.getConnection((err, conn) => {
         if (err) return next(err);
 
-        // Deleta primeiro os dados da tabela gift_map
-        connection.query(
-            'DELETE FROM gift_map WHERE respondent_id = ?',
-            [respondentId],
-            (error, results) => {
-                if (error) {
-                    return connection.rollback(() => {
-                        next(error);
-                    });
-                }
+        conn.beginTransaction((err) => {
+            if (err) return next(err);
 
-                // Agora deleta o respondent
-                connection.query(
-                    'DELETE FROM respondents WHERE id = ?',
-                    [respondentId],
-                    (error, results) => {
-                        if (error) {
-                            return connection.rollback(() => {
-                                next(error);
-                            });
-                        }
+            // Deleta primeiro os dados da tabela gift_map
+            conn.query(
+                'DELETE FROM gift_map WHERE respondent_id = ?',
+                [respondentId],
+                (error, results) => {
+                    if (error) {
+                        return conn.rollback(() => {
+                            next(error);
+                        });
+                    }
 
-                        connection.commit((err) => {
-                            if (err) {
-                                return connection.rollback(() => {
-                                    next(err);
+                    // Agora deleta o respondent
+                    conn.query(
+                        'DELETE FROM respondents WHERE id = ?',
+                        [respondentId],
+                        (error, results) => {
+                            if (error) {
+                                return conn.rollback(() => {
+                                    next(error);
                                 });
                             }
 
-                            res.status(200).json({ message: 'Respondente e dados do gift_map deletados com sucesso.' });
-                        });
-                    }
-                );
-            }
-        );
+                            conn.commit((err) => {
+                                if (err) {
+                                    return conn.rollback(() => {
+                                        next(err);
+                                    });
+                                }
+
+                                res.status(200).json({ message: 'Respondente e dados do gift_map deletados com sucesso.' });
+                            });
+                        }
+                    );
+                }
+            );
+        });
     });
 };
