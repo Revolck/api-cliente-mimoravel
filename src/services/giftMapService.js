@@ -54,12 +54,15 @@ const deleteGiftMapByRespondentId = async (respondentId) => {
         conn = await connection.getConnection();
         await conn.beginTransaction();
 
-        // Deleta os dados da tabela gift_map
-        const [giftMapResult] = await conn.query('DELETE FROM gift_map WHERE respondent_id = ?', [respondentId]);
+        // Verifica se existem dados na tabela gift_map para o respondentId
+        const [giftMapRows] = await conn.query('SELECT * FROM gift_map WHERE respondent_id = ?', [respondentId]);
 
-        if (giftMapResult.affectedRows === 0) {
+        if (giftMapRows.length === 0) {
             throw new Error('Nenhum dado encontrado para o respondente fornecido.');
         }
+
+        // Deleta os dados da tabela gift_map
+        await conn.query('DELETE FROM gift_map WHERE respondent_id = ?', [respondentId]);
 
         // Deleta os dados da tabela respondents
         const [respondentResult] = await conn.query('DELETE FROM respondents WHERE id = ?', [respondentId]);
