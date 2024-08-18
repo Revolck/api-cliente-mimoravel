@@ -64,7 +64,30 @@ const loginUser = async (email, senha) => {
     }
 };
 
+const updateUserProfile = async (userId, { senha, perfil_imagem_url }) => {
+    let updateQuery = 'UPDATE users SET';
+    let params = [];
+    
+    if (senha) {
+        const hashedPassword = await bcrypt.hash(senha, 10);
+        updateQuery += ' senha = ?';
+        params.push(hashedPassword);
+    }
+
+    if (perfil_imagem_url) {
+        if (params.length > 0) updateQuery += ',';
+        updateQuery += ' perfil_imagem_url = ?';
+        params.push(perfil_imagem_url);
+    }
+
+    updateQuery += ' WHERE id = ?';
+    params.push(userId);
+
+    await pool.query(updateQuery, params);
+};
+
 module.exports = {
     addUser,
     loginUser,
+    updateUserProfile,
 };

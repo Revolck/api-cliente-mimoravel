@@ -31,3 +31,17 @@ exports.loginUser = async (req, res, next) => {
         return res.status(500).json({ error: 'Erro no servidor.' });
     }
 };
+
+exports.updateUserProfile = async (req, res, next) => {
+    const userId = req.user.id; // Assumindo que o ID do usuário está no req.user após autenticação
+    const { senha, perfil_imagem_url } = req.body;
+
+    try {
+        await userService.updateUserProfile(userId, { senha, perfil_imagem_url });
+        res.status(200).json({ message: 'Perfil atualizado com sucesso!' });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Erro no servidor.' });
+    }
+};
+
