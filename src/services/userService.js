@@ -57,8 +57,8 @@ const loginUser = async (email, senha) => {
             throw new Error('Senha incorreta.');
         }
 
-        const token = auth.generateToken({ id: user.id, email: user.email });
-        return { token, user: { id: user.id, email: user.email, username: user.username } };
+        const token = auth.generateToken({ id: user.id, email: user.email, username: user.username });
+        return { token, user: { id: user.id, email: user.email, username: user.username, nome_completo: user.nome_completo } };
     } catch (error) {
         throw error;
     }
@@ -76,7 +76,7 @@ const updateUserProfile = async (username, { senha, perfil_imagem_url }) => {
     const userId = userRows[0].id;
     let updateQuery = 'UPDATE users SET';
     let params = [];
-    
+
     if (senha) {
         const hashedPassword = await bcrypt.hash(senha, 10);
         updateQuery += ' senha = ?';
