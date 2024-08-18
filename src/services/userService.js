@@ -9,7 +9,7 @@ const generateUsername = (nomeCompleto) => {
         .split(' ')
         .filter(word => word.length > 0)
         .slice(0, 2) // Pega apenas os dois primeiros nomes
-        .join('-'); // Une com ponto
+        .join('-'); // Une com hífen
 };
 
 // Função para verificar se um CPF ou e-mail já está cadastrado
@@ -64,7 +64,16 @@ const loginUser = async (email, senha) => {
     }
 };
 
-const updateUserProfile = async (userId, { senha, perfil_imagem_url }) => {
+// Função para atualizar o perfil do usuário com base no username
+const updateUserProfile = async (username, { senha, perfil_imagem_url }) => {
+    // Primeiro, obtenha o ID do usuário com base no username
+    const [userRows] = await pool.query('SELECT id FROM users WHERE username = ?', [username]);
+
+    if (userRows.length === 0) {
+        throw new Error('Usuário não encontrado.');
+    }
+
+    const userId = userRows[0].id;
     let updateQuery = 'UPDATE users SET';
     let params = [];
     
