@@ -2,6 +2,16 @@ const bcrypt = require('bcrypt');
 const pool = require('../config/db');
 const auth = require('../config/auth');
 
+// Função para gerar o username
+const generateUsername = (nomeCompleto) => {
+    return nomeCompleto
+        .toLowerCase()
+        .split(' ')
+        .filter(word => word.length > 0)
+        .slice(0, 2) // Pega apenas os dois primeiros nomes
+        .join('.'); // Une com ponto
+};
+
 // Função para verificar se um CPF ou e-mail já está cadastrado
 const checkDuplicate = async (cpf, email) => {
     const [rows] = await pool.query('SELECT * FROM users WHERE cpf = ? OR email = ?', [cpf, email]);
@@ -11,6 +21,7 @@ const checkDuplicate = async (cpf, email) => {
 // Função para adicionar um novo usuário
 const addUser = async (userData) => {
     const { nome_completo, cpf, email, telefone, senha, perfil_imagem_url } = userData;
+    const username = generateUsername(nome_completo);
     const hashedPassword = await bcrypt.hash(senha, 10);
 
     // Verifica duplicidade antes de inserir o usuário
@@ -19,11 +30,11 @@ const addUser = async (userData) => {
     }
 
     const [result] = await pool.query(
-        'INSERT INTO users (nome_completo, cpf, email, telefone, senha, perfil_imagem_url) VALUES (?, ?, ?, ?, ?, ?)',
-        [nome_completo, cpf, email, telefone, hashedPassword, perfil_imagem_url]
+        'INSERT INTO users (nome_completo, username, cpf, email, telefone, senha, perfil_imagem_url) VALUES (?, ?, ?, ?, ?, ?, ?)',
+        [nome_completo, username, cpf, email, telefone, hashedPassword, perfil_imagem_url]
     );
 
-    return { id: result.insertId };
+    return { id: result.insertId, username }; // Inclui o username na resposta
 };
 
 // Função para realizar o login do usuário
@@ -47,7 +58,7 @@ const loginUser = async (email, senha) => {
         }
 
         const token = auth.generateToken({ id: user.id, email: user.email });
-        return { token, user: { id: user.id, email: user.email } };
+        return { token, user: { id: user.id, email: user.email, username: user.username } };
     } catch (error) {
         throw error;
     }
