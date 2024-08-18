@@ -131,10 +131,30 @@ const getGiftMapById = async (giftMapId) => {
     }
 };
 
+const updateGiftMapStatusById = async (id, newStatus) => {
+    const query = `
+        UPDATE gift_map
+        SET status_contato = ?
+        WHERE id = ?
+    `;
+    const params = [newStatus, id];
+
+    try {
+        const [result] = await connection.query(query, params);
+        if (result.affectedRows === 0) {
+            throw new Error('Gift Map not found');
+        }
+        return result;
+    } catch (err) {
+        throw new Error('Erro ao atualizar o status do Gift Map: ' + err.message);
+    }
+};
+
 module.exports = {
     getGiftMap,
     addGiftMap,
     getAllGiftMaps,
     deleteGiftMapById,
     getGiftMapById,
+    updateGiftMapStatusById,
 };

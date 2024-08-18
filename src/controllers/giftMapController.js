@@ -52,3 +52,15 @@ exports.getGiftMapById = async (req, res, next) => {
         next(error);
     }
 };
+
+exports.updateGiftMapStatus = async (req, res, next) => {
+    const giftMapId = req.params.id;
+    const { status_contato } = req.body;
+
+    try {
+        await giftMapService.updateGiftMapStatusById(giftMapId, status_contato);
+        res.status(200).json({ message: 'Status atualizado com sucesso!' });
+    } catch (err) {
+        next(err);
+    }
+};
