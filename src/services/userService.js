@@ -9,7 +9,7 @@ const generateUsername = (nomeCompleto) => {
         .split(' ')
         .filter(word => word.length > 0)
         .slice(0, 2) // Pega apenas os dois primeiros nomes
-        .join('.'); // Une com ponto
+        .join('-'); // Une com ponto
 };
 
 // Função para verificar se um CPF ou e-mail já está cadastrado
