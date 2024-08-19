@@ -58,6 +58,7 @@ const loginUser = async (email, senha) => {
         }
 
         const token = auth.generateToken({ id: user.id, email: user.email });
+        console.log('Dados do Usuário:', user);
         return { token,
             user: { 
                 id: user.id,
