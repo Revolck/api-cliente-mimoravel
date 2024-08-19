@@ -44,9 +44,10 @@ exports.updateUserProfile = async (req, res, next) => {
 
 exports.getUserProfile = async (req, res, next) => {
     const { username } = req.params;
-
+    console.log(`Buscando perfil para username: ${username}`);
     try {
         const user = await userService.getUserByUsername(username);
+        console.log('Usuário encontrado:', user);
         if (!user) {
             return res.status(404).json({ error: 'Usuário não encontrado.' });
         }

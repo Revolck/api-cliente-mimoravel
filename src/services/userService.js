@@ -89,7 +89,7 @@ const updateUserProfile = async (username, { senha, perfil_imagem_url }) => {
 };
 
 const getUserByUsername = async (username) => {
-    const [rows] = await pool.query('SELECT id, nome_completo, email, telefone, perfil_imagem_url FROM users WHERE username = ?', [username]);
+    const [rows] = await pool.query('SELECT * FROM users WHERE username = ?', [username]);
     return rows.length > 0 ? rows[0] : null;
 };
 
