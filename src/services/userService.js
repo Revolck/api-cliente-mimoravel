@@ -58,7 +58,14 @@ const loginUser = async (email, senha) => {
         }
 
         const token = auth.generateToken({ id: user.id, email: user.email });
-        return { token, user: { id: user.id, email: user.email, username: user.username } };
+        return { token,
+            user: { 
+                id: user.id,
+                email: user.email,
+                username: user.username,
+                nome_completo: user.nome_completo
+            }
+        };
     } catch (error) {
         throw error;
     }
