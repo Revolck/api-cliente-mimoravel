@@ -45,3 +45,17 @@ exports.updateUserProfile = async (req, res, next) => {
     }
 };
 
+exports.getUserProfile = async (req, res, next) => {
+    const { username } = req.params;
+    try {
+        const [rows] = await pool.query('SELECT email, telefone, perfil_imagem_url FROM users WHERE username = ?', [username]);
+        if (rows.length === 0) {
+            return res.status(404).json({ error: 'Usuário não encontrado.' });
+        }
+        res.status(200).json(rows[0]);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ error: 'Erro no servidor.' });
+    }
+};
+
