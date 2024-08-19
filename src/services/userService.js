@@ -2,29 +2,25 @@ const bcrypt = require('bcrypt');
 const pool = require('../config/db');
 const auth = require('../config/auth');
 
-// Função para gerar o username
 const generateUsername = (nomeCompleto) => {
     return nomeCompleto
         .toLowerCase()
         .split(' ')
         .filter(word => word.length > 0)
-        .slice(0, 2) // Pega apenas os dois primeiros nomes
-        .join('-'); // Une com hífen
+        .slice(0, 2)
+        .join('-');
 };
 
-// Função para verificar se um CPF ou e-mail já está cadastrado
 const checkDuplicate = async (cpf, email) => {
     const [rows] = await pool.query('SELECT * FROM users WHERE cpf = ? OR email = ?', [cpf, email]);
     return rows.length > 0;
 };
 
-// Função para adicionar um novo usuário
 const addUser = async (userData) => {
     const { nome_completo, cpf, email, telefone, senha, perfil_imagem_url } = userData;
     const username = generateUsername(nome_completo);
     const hashedPassword = await bcrypt.hash(senha, 10);
 
-    // Verifica duplicidade antes de inserir o usuário
     if (await checkDuplicate(cpf, email)) {
         throw new Error('CPF ou Email já cadastrado.');
     }
@@ -34,10 +30,9 @@ const addUser = async (userData) => {
         [nome_completo, username, cpf, email, telefone, hashedPassword, perfil_imagem_url]
     );
 
-    return { id: result.insertId, username }; // Inclui o username na resposta
+    return { id: result.insertId, username };
 };
 
-// Função para realizar o login do usuário
 const loginUser = async (email, senha) => {
     try {
         const [rows] = await pool.query('SELECT * FROM users WHERE email = ?', [email]);
@@ -58,23 +53,13 @@ const loginUser = async (email, senha) => {
         }
 
         const token = auth.generateToken({ id: user.id, email: user.email });
-        console.log('Dados do Usuário:', user);
-        return { token,
-            user: { 
-                id: user.id,
-                email: user.email,
-                username: user.username,
-                nome_completo: user.nome_completo
-            }
-        };
+        return { token, user: { id: user.id, email: user.email, username: user.username, nome_completo: user.nome_completo } };
     } catch (error) {
         throw error;
     }
 };
 
-// Função para atualizar o perfil do usuário com base no username
 const updateUserProfile = async (username, { senha, perfil_imagem_url }) => {
-    // Primeiro, obtenha o ID do usuário com base no username
     const [userRows] = await pool.query('SELECT id FROM users WHERE username = ?', [username]);
 
     if (userRows.length === 0) {
@@ -103,8 +88,14 @@ const updateUserProfile = async (username, { senha, perfil_imagem_url }) => {
     await pool.query(updateQuery, params);
 };
 
+const getUserByUsername = async (username) => {
+    const [rows] = await pool.query('SELECT id, nome_completo, email, telefone, perfil_imagem_url FROM users WHERE username = ?', [username]);
+    return rows.length > 0 ? rows[0] : null;
+};
+
 module.exports = {
     addUser,
     loginUser,
     updateUserProfile,
+    getUserByUsername,
 };
