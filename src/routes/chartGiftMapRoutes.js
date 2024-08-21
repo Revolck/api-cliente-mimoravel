@@ -1,6 +1,6 @@
 const express = require('express');
 const router = express.Router();
-const { getNewLeadsByWeek, getNewLeadsByMonth } = require('../services/chartGiftMapRoutes');
+const { getNewLeadsByWeek, getNewLeadsByMonth } = require('../services/chartGiftMapService');
 
 // Rota para obter novos leads por semana
 router.get('/leads/week', async (req, res) => {
