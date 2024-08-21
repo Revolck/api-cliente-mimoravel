@@ -30,6 +30,7 @@ app.use(morgan('combined'));
 // Rotas da API
 app.use('/api/users', require('./src/routes/userRoutes'));
 app.use('/api/giftmaps', require('./src/routes/giftMapRoutes'));
+app.use('/api/chart', require('./src/routes/chartGiftMapRoutes'));
 // app.use('/api/auth', require('./src/routes/authRoutes'));
 
 // Middleware de tratamento de erros
