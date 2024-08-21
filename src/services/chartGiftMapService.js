@@ -5,11 +5,19 @@ const { ptBR } = require('date-fns/locale');
 // Função para obter novos leads por semana
 const getNewLeadsByWeek = async () => {
   const [rows] = await connection.query(`
-    SELECT DATE_FORMAT(data_criacao, '%W') AS day_name, DATE_FORMAT(data_criacao, '%Y-%m-%d') AS date, COUNT(*) AS 'Novo Lead'
-    FROM gift_map
-    WHERE status_contato = 'Novo Lead'
-    AND data_criacao >= CURDATE() - INTERVAL WEEKDAY(CURDATE()) DAY
-    GROUP BY DATE_FORMAT(data_criacao, '%Y-%m-%d')
+    SELECT 
+      DAYOFWEEK(data_criacao) AS week_day, 
+      DATE_FORMAT(data_criacao, '%d/%m') AS formatted_date, 
+      COUNT(*) AS 'Novo Lead'
+    FROM 
+      gift_map
+    WHERE 
+      status_contato = 'Novo Lead'
+      AND data_criacao >= CURDATE() - INTERVAL WEEKDAY(CURDATE()) DAY
+    GROUP BY 
+      DATE(data_criacao)
+    ORDER BY 
+      DATE(data_criacao)
   `);
 
   const weekDays = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
@@ -17,16 +25,17 @@ const getNewLeadsByWeek = async () => {
   const startDate = startOfWeek(today, { locale: ptBR, weekStartsOn: 0 });
 
   const completeWeekData = weekDays.map((day, index) => {
-    const found = rows.find(row => row.day_name === day);
-    const date = found ? found.date : format(addDays(startDate, index), 'dd/MM');
+    const currentDate = format(addDays(startDate, index), 'dd/MM');
+    const found = rows.find(row => row.formatted_date === currentDate);
     return {
-      day: `${day} - ${date}`,
+      day: `${day} - ${currentDate}`,
       'Novo Lead': found ? found['Novo Lead'] : 0,
     };
   });
 
   return completeWeekData;
 };
+
 
 // Função para obter novos leads por mês
 const getNewLeadsByMonth = async () => {
