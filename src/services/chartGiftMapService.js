@@ -16,27 +16,38 @@ const getNewLeadsByWeek = async () => {
 const getNewLeadsByMonth = async () => {
   const [rows] = await connection.query(`
     SELECT
-      CASE
-        WHEN MONTH(data_criacao) = 1 THEN 'Janeiro'
-        WHEN MONTH(data_criacao) = 2 THEN 'Fevereiro'
-        WHEN MONTH(data_criacao) = 3 THEN 'Março'
-        WHEN MONTH(data_criacao) = 4 THEN 'Abril'
-        WHEN MONTH(data_criacao) = 5 THEN 'Maio'
-        WHEN MONTH(data_criacao) = 6 THEN 'Junho'
-        WHEN MONTH(data_criacao) = 7 THEN 'Julho'
-        WHEN MONTH(data_criacao) = 8 THEN 'Agosto'
-        WHEN MONTH(data_criacao) = 9 THEN 'Setembro'
-        WHEN MONTH(data_criacao) = 10 THEN 'Outubro'
-        WHEN MONTH(data_criacao) = 11 THEN 'Novembro'
-        WHEN MONTH(data_criacao) = 12 THEN 'Dezembro'
-      END AS month,
+      DATE_FORMAT(data_criacao, '%M') AS month_name,
+      DATE_FORMAT(data_criacao, '%Y') AS year,
       COUNT(*) AS 'Novo Lead'
     FROM gift_map
     WHERE status_contato = 'Novo Lead'
     AND YEAR(data_criacao) = YEAR(CURDATE())
-    GROUP BY MONTH(data_criacao), YEAR(data_criacao)
+    GROUP BY DATE_FORMAT(data_criacao, '%Y-%m')
   `);
-  return rows;
+  return rows.map(row => ({
+    month: translateMonth(row.month_name),
+    year: row.year,
+    'Novo Lead': row['Novo Lead']
+  }));
+};
+
+// Função para traduzir o mês para português
+const translateMonth = (month) => {
+  const months = {
+    'January': 'Janeiro',
+    'February': 'Fevereiro',
+    'March': 'Março',
+    'April': 'Abril',
+    'May': 'Maio',
+    'June': 'Junho',
+    'July': 'Julho',
+    'August': 'Agosto',
+    'September': 'Setembro',
+    'October': 'Outubro',
+    'November': 'Novembro',
+    'December': 'Dezembro',
+  };
+  return months[month] || month;
 };
 
 module.exports = { getNewLeadsByWeek, getNewLeadsByMonth };
