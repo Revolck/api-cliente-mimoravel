@@ -3,13 +3,25 @@ const connection = require('../config/db');
 // Função para obter novos leads por semana
 const getNewLeadsByWeek = async () => {
   const [rows] = await connection.query(`
-    SELECT DAYOFWEEK(data_criacao) AS day, COUNT(*) AS 'Novo Lead'
+    SELECT DATE_FORMAT(data_criacao, '%W') AS day_name, DATE_FORMAT(data_criacao, '%d/%m') AS date, COUNT(*) AS 'Novo Lead'
     FROM gift_map
     WHERE status_contato = 'Novo Lead'
     AND data_criacao >= CURDATE() - INTERVAL WEEKDAY(CURDATE()) DAY
-    GROUP BY DAYOFWEEK(data_criacao)
+    GROUP BY DATE_FORMAT(data_criacao, '%Y-%m-%d')
   `);
-  return rows;
+
+  const weekDays = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
+
+  const completeWeekData = weekDays.map((day, index) => {
+    const found = rows.find(row => row.day_name === day);
+    const date = found ? found.date : format(new Date(Date.now() - (WEEKDAY(new Date()) - index) * 86400000), 'dd/MM');
+    return {
+      day: `${day} - ${date}`,
+      'Novo Lead': found ? found['Novo Lead'] : 0
+    };
+  });
+
+  return completeWeekData;
 };
 
 // Função para obter novos leads por mês
